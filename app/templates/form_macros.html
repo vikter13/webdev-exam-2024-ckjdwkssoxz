@@ -1,0 +1,44 @@
+{% macro render_book_form(form, action_url) %}
+    <form action="{{ action_url }}" method="POST" enctype="multipart/form-data">
+        {{ form.hidden_tag() }}
+        <div class="form-group">
+            {{ form.title.label }}<br>
+            {{ form.title(size=32, class="form-control") }}
+        </div>
+        <div class="form-group">
+            {{ form.description.label }}<br>
+            {{ form.description(rows=10, class="form-control") }}
+        </div>
+        <div class="form-group">
+            {{ form.year.label }}<br>
+            {{ form.year(size=32, class="form-control") }}
+        </div>
+        <div class="form-group">
+            {{ form.publisher.label }}<br>
+            {{ form.publisher(size=32, class="form-control") }}
+        </div>
+        <div class="form-group">
+            {{ form.author.label }}<br>
+            {{ form.author(size=32, class="form-control") }}
+        </div>
+        <div class="form-group">
+            {{ form.pages.label }}<br>
+            {{ form.pages(size=32, class="form-control") }}
+        </div>
+        <div class="form-group">
+            {{ form.genres.label }}<br>
+            {% for genre in form.genres %}
+                <label class="checkbox-inline">{{ genre }} {{ genre.label }}</label>
+            {% endfor %}
+        </div>
+        {% if form.cover %}
+        <div class="form-group">
+            {{ form.cover.label }}<br>
+            {{ form.cover(class="form-control-file") }}
+        </div>
+        {% endif %}
+        <div class="form-group">
+            {{ form.submit(class="btn btn-primary") }}
+        </div>
+    </form>
+{% endmacro %}

@@ -1,0 +1,7 @@
+{% extends "base.html" %}
+{% from "form_macros.html" import render_book_form %}
+
+{% block content %}
+    <h1>{{ title }}</h1>
+    {{ render_book_form(form, action_url) }}
+{% endblock %}

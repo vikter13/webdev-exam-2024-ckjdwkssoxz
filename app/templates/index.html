@@ -1,0 +1,90 @@
+{% extends "base.html" %}
+{% block title %}Books List - Your App{% endblock %}
+
+{% block content %}
+    <h1>Books List</h1>
+    {% if current_user.is_authenticated and current_user.role.name == 'Администратор' %}
+        <div class="add-book-button">
+            <a href="{{ url_for('add_book') }}">Add Book</a>
+        </div>
+    {% endif %}
+    <div class="books">
+        {% for book in books.items %}
+            <div class="book">
+                <h2>{{ book.title }}</h2>
+                <p class="author">Author: {{ book.author }}</p>
+                <p class="year">Year: {{ book.year }}</p>
+                <p class="genres">Genres: {% for genre in book.genres %}{{ genre.name }}{% if not loop.last %}, {% endif %}{% endfor %}</p>
+                <p class="avg-rating">Average Rating: {{ book.avg_rating }}</p>
+                <p class="reviews">Reviews: {{ book.reviews_count }}</p>
+                {% if current_user.is_authenticated %}
+                    {% if current_user.role.name == 'Администратор' %}
+                        <a class="view" href="{{ url_for('view_book', book_id=book.id) }}">View</a>
+                        <a class="edit" href="#">Edit</a>
+                        <a class="delete" href="#" data-book-id="{{ book.id }}" data-book-title="{{ book.title }}">Delete</a>
+                    {% elif current_user.role.name == 'Модератор' %}
+                        <a class="view" href="{{ url_for('view_book', book_id=book.id) }}">View</a>
+                        <a class="edit" href="#">Edit</a>
+                    {% else %}
+                        <a class="view" href="{{ url_for('view_book', book_id=book.id) }}">View</a>
+                    {% endif %}
+                {% endif %}
+            </div>
+        {% endfor %}
+    </div>
+
+    <!-- Модальное окно для удаления записи -->
+    <div id="deleteModal" class="modal">
+        <div class="modal-content">
+            <span class="close">&times;</span>
+            <h2>Удаление книги</h2>
+            <p id="delete-message"></p>
+            <button id="delete-yes">Да</button>
+            <button id="delete-no">Нет</button>
+        </div>
+    </div>
+
+    <script>
+        document.querySelectorAll('.delete').forEach(item => {
+            item.addEventListener('click', event => {
+                event.preventDefault();
+                const bookId = event.target.dataset.bookId;
+                const bookTitle = event.target.dataset.bookTitle;
+                const deleteModal = document.getElementById('deleteModal');
+                const deleteMessage = document.getElementById('delete-message');
+                deleteMessage.innerText = `Вы уверены, что хотите удалить книгу "${bookTitle}"?`;
+                deleteModal.style.display = 'block';
+
+                const deleteYesBtn = document.getElementById('delete-yes');
+                const deleteNoBtn = document.getElementById('delete-no');
+
+                deleteYesBtn.onclick = () => {
+                    fetch(`/delete_book/${bookId}`, {
+                        method: 'DELETE'
+                    }).then(response => {
+                        if (response.ok) {
+                            window.location.reload();
+                        } else {
+                            deleteModal.style.display = 'none';
+                            alert('Ошибка при удалении книги.');
+                        }
+                    });
+                };
+
+                deleteNoBtn.onclick = () => {
+                    deleteModal.style.display = 'none';
+                };
+            });
+        });
+
+        document.querySelector('.close').onclick = () => {
+            document.getElementById('deleteModal').style.display = 'none';
+        };
+
+        window.onclick = event => {
+            if (event.target === document.getElementById('deleteModal')) {
+                document.getElementById('deleteModal').style.display = 'none';
+            }
+        };
+    </script>
+{% endblock %}
