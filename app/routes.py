@@ -158,24 +158,29 @@ def view_book(book_id):
     print("Cover filename:", cover.filename)
     return render_template('view_book.html', book=book, cover=cover)
 
-@app.route('/delete_book/<int:book_id>', methods=['DELETE'])
+@app.route('/delete_book/<int:book_id>', methods=['POST'])
 @login_required
 def delete_book(book_id):
     if current_user.role.name not in ['Администратор', 'Модератор']:
         flash('У вас недостаточно прав для выполнения данного действия.')
         return redirect(url_for('index'))
 
-    book = Book.query.get_or_404(book_id)
+    if request.json and request.json.get('_method') == 'DELETE':
+        book = Book.query.get_or_404(book_id)
 
-    cover = Cover.query.get(book.cover_id)
-    if cover:
-        cover_path = os.path.join(app.config['UPLOAD_FOLDER'], cover.filename)
-        if os.path.exists(cover_path):
-            os.remove(cover_path)
-        db.session.delete(cover)
+        cover = Cover.query.get(book.cover_id)
+        if cover:
+            cover_path = os.path.join(app.config['UPLOAD_FOLDER'], cover.filename)
+            if os.path.exists(cover_path):
+                os.remove(cover_path)
+            db.session.delete(cover)
 
-    db.session.delete(book)
-    db.session.commit()
+        db.session.delete(book)
+        db.session.commit()
 
-    flash('Книга успешно удалена!', 'success')
+        flash('Книга успешно удалена!', 'success')
+        return '', 204  
+
+    flash('Ошибка при удалении книги.', 'error')
     return redirect(url_for('index'))
+

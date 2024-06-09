@@ -33,7 +33,6 @@
         {% endfor %}
     </div>
 
-    <!-- Модальное окно для удаления записи -->
     <div id="deleteModal" class="modal">
         <div class="modal-content">
             <span class="close">&times;</span>
@@ -54,13 +53,17 @@
                 const deleteMessage = document.getElementById('delete-message');
                 deleteMessage.innerText = `Вы уверены, что хотите удалить книгу "${bookTitle}"?`;
                 deleteModal.style.display = 'block';
-
+    
                 const deleteYesBtn = document.getElementById('delete-yes');
                 const deleteNoBtn = document.getElementById('delete-no');
-
+    
                 deleteYesBtn.onclick = () => {
                     fetch(`/delete_book/${bookId}`, {
-                        method: 'DELETE'
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify({ _method: 'DELETE' })
                     }).then(response => {
                         if (response.ok) {
                             window.location.reload();
@@ -70,21 +73,21 @@
                         }
                     });
                 };
-
+    
                 deleteNoBtn.onclick = () => {
                     deleteModal.style.display = 'none';
                 };
             });
         });
-
+    
         document.querySelector('.close').onclick = () => {
             document.getElementById('deleteModal').style.display = 'none';
         };
-
+    
         window.onclick = event => {
             if (event.target === document.getElementById('deleteModal')) {
                 document.getElementById('deleteModal').style.display = 'none';
             }
         };
-    </script>
+    </script>    
 {% endblock %}
