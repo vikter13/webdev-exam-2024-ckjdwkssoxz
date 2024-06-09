@@ -1,19 +1,29 @@
-from flask import render_template, redirect, url_for, flash, request
-from flask_login import login_user, logout_user, current_user, login_required
 from . import app, db
 from .models import User, Role, Book, Cover, Genre, Review
-from .forms import LoginForm, AddBookForm, EditBookForm, RegisterForm
+from .forms import LoginForm, AddBookForm, EditBookForm, RegisterForm, ReviewForm
+
+from flask import render_template, redirect, url_for, flash, request
+from flask_login import login_user, logout_user, current_user, login_required
 from werkzeug.security import generate_password_hash, check_password_hash
+from werkzeug.utils import secure_filename
+from sqlalchemy import func
+from markupsafe import Markup
+
 import os
 import hashlib
-from werkzeug.utils import secure_filename
 import bleach
+import markdown
+
 
 @app.route('/')
 def index():
     page = request.args.get('page', 1, type=int)
     books = Book.query.order_by(Book.year.desc()).paginate(page=page, per_page=10)
-    return render_template('index.html', books=books)
+    avg_ratings = db.session.query(func.avg(Review.rating)).join(Book).group_by(Book.id).all()
+    book_avg_ratings = {book.id: round(rating[0], 2) if rating[0] is not None else "No rating" for book, rating in zip(books.items, avg_ratings)}
+    reviews_count = {book.id: len(book.reviews) for book in books.items}
+    return render_template('index.html', books=books, book_avg_ratings=book_avg_ratings, reviews_count=reviews_count)
+
 
 @app.route('/login', methods=['GET', 'POST'])
 def login():
@@ -27,8 +37,9 @@ def login():
             next_page = request.args.get('next', url_for('index'))
             return redirect(next_page)
         else:
-            flash('Invalid username or password.', 'error')
+            flash('Error while authentification with this log and pass', 'error')
     return render_template('login.html', form=form)
+
 
 @app.route('/register', methods=['GET', 'POST'])
 def register():
@@ -36,7 +47,7 @@ def register():
     if form.validate_on_submit():
         existing_user = User.query.filter_by(username=form.username.data).first()
         if existing_user:
-            flash('Username already exists. Please choose a different one.', 'error')
+            flash('Username already exists. Please choose a different one', 'error')
             return redirect(url_for('register'))
         
         hashed_password = generate_password_hash(form.password.data)
@@ -49,25 +60,29 @@ def register():
             middle_name=form.middle_name.data,
             role_id=role_id
         )
+
         db.session.add(new_user)
         db.session.commit()
         
-        flash('Registration successful. You can now log in.', 'success')
+        flash('Registration successful. You can now log in', 'success')
         return redirect(url_for('login'))
     
     return render_template('register.html', form=form)
+
 
 @app.route('/logout', methods=['GET', 'POST'])
 @login_required
 def logout():
     logout_user()
+    flash('')
     return redirect(url_for('index'))
+
 
 @app.route('/add_book', methods=['GET', 'POST'])
 @login_required
 def add_book():
     if current_user.role.name not in ['Администратор', 'Модератор']:
-        flash('У вас недостаточно прав для выполнения данного действия.')
+        flash('You do not have sufficient permissions for this action')
         return redirect(url_for('index'))
     form = AddBookForm()
     if form.validate_on_submit():
@@ -91,16 +106,16 @@ def add_book():
             else:
                 try:
                     cover.save(cover_path)
-                    print(f"File saved to: {cover_path}")  
+                    print(f"File saved to: {cover_path}") 
                     new_cover = Cover(filename=cover_filename, mime_type=cover.mimetype, md5_hash=cover_md5)
                     db.session.add(new_cover)
                     db.session.flush()
                     cover_id = new_cover.id
                 except Exception as e:
-                    flash('Ошибка при сохранении обложки: ' + str(e), 'error')
+                    flash('Error while saving the book: ' + str(e), 'error')
                     return redirect(url_for('add_book'))
         else:
-            flash('Обложка не загружена', 'error')
+            flash('Cover was not loaded', 'error')
             return redirect(url_for('add_book'))
 
         sanitized_description = bleach.clean(form.description.data)
@@ -113,56 +128,90 @@ def add_book():
             pages=form.pages.data,
             cover_id=cover_id
         )
-        print(f"File content length: {len(cover_data)}")
+
         genres = Genre.query.filter(Genre.id.in_(form.genres.data)).all()
         new_book.genres.extend(genres)
         db.session.add(new_book)
         db.session.commit()
-        flash('Книга успешно добавлена!')
+        flash('The book was successfully add')
         return redirect(url_for('index'))
     return render_template('add_edit_book.html', form=form, title="Добавить книгу", action_url=url_for('add_book'))
+
+
+
 
 @app.route('/edit_book/<int:book_id>', methods=['GET', 'POST'])
 @login_required
 def edit_book(book_id):
     if current_user.role.name not in ['Администратор', 'Модератор']:
-        flash('У вас недостаточно прав для выполнения данного действия.')
+        flash('You do not have sufficient permissions for this action')
         return redirect(url_for('index'))
     book = Book.query.get_or_404(book_id)
     form = EditBookForm(obj=book)
     if form.validate_on_submit():
-        try:
-            book.title = form.title.data
-            book.description = bleach.clean(form.description.data)
-            book.year = form.year.data
-            book.publisher = form.publisher.data
-            book.author = form.author.data
-            book.pages = form.pages.data
-            genres = Genre.query.filter(Genre.id.in_(form.genres.data)).all()
-            book.genres = genres
-            db.session.commit()
-            flash('Книга успешно обновлена!')
-            return redirect(url_for('view_book', book_id=book.id))
-        except Exception as e:
-            db.session.rollback()
-            flash('При сохранении данных возникла ошибка. Проверьте корректность введённых данных.', 'error')
-            print(e)
+        book.title = form.title.data
+        book.description = bleach.clean(form.description.data)
+        book.year = form.year.data
+        book.publisher = form.publisher.data
+        book.author = form.author.data
+        book.pages = form.pages.data
+        genres = Genre.query.filter(Genre.id.in_(form.genres.data)).all()
+        book.genres = genres
+        db.session.commit()
+        flash('The book was successfully edited', 'success')
+        return redirect(url_for('view_book', book_id=book.id))
     else:
         form.genres.data = [genre.id for genre in book.genres]
     return render_template('add_edit_book.html', form=form, title="Редактировать книгу", action_url=url_for('edit_book', book_id=book.id))
+
+@app.route('/add_review/<int:book_id>', methods=['GET', 'POST'])
+@login_required
+def add_review(book_id):
+    book = Book.query.get_or_404(book_id)
+    if current_user.has_reviewed(book):
+        flash('You have already wrote review on this book', 'error')
+        return redirect(url_for('view_book', book_id=book_id))
+
+    form = ReviewForm()
+    if form.validate_on_submit():
+        sanitized_text = bleach.clean(form.text.data)
+        new_review = Review(
+            book_id=book.id,
+            user_id=current_user.id,
+            rating=int(form.rating.data),
+            text=sanitized_text
+        )
+        db.session.add(new_review)
+        db.session.commit()
+        flash('Review was successfully uploaded', 'success')
+        return redirect(url_for('view_book', book_id=book_id))
+
+    return render_template('review_form.html', form=form, book=book)
 
 @app.route('/view_book/<int:book_id>')
 def view_book(book_id):
     book = Book.query.get_or_404(book_id)
     cover = Cover.query.get(book.cover_id)
-    print("Cover filename:", cover.filename)
-    return render_template('view_book.html', book=book, cover=cover)
+    user_review = None
+    if current_user.is_authenticated:
+        user_review = Review.query.filter_by(user_id=current_user.id, book_id=book.id).first()
+    reviews = Review.query.filter_by(book_id=book.id).all()
+    reviews_count = len(reviews)  
+    reviews = [
+        {
+            'username': User.query.get(review.user_id).username,
+            'rating': review.rating,
+            'text': Markup(markdown.markdown(review.text)),
+            'date_added': review.date_added
+        } for review in reviews
+    ]
+    return render_template('view_book.html', book=book, cover=cover, user_review=user_review, reviews=reviews, reviews_count=reviews_count)
 
 @app.route('/delete_book/<int:book_id>', methods=['POST'])
 @login_required
 def delete_book(book_id):
     if current_user.role.name not in ['Администратор', 'Модератор']:
-        flash('У вас недостаточно прав для выполнения данного действия.')
+        flash('You do not have sufficient permissions for this action')
         return redirect(url_for('index'))
 
     if request.json and request.json.get('_method') == 'DELETE':
@@ -178,9 +227,12 @@ def delete_book(book_id):
         db.session.delete(book)
         db.session.commit()
 
-        flash('Книга успешно удалена!', 'success')
+        flash('The book was successfully deleted', 'success')
         return '', 204  
 
-    flash('Ошибка при удалении книги.', 'error')
+    flash('There was an error while deleting this book', 'error')
     return redirect(url_for('index'))
 
+@app.route('/about')
+def about():
+    return render_template('about.html')

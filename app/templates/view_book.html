@@ -1,5 +1,5 @@
 {% extends "base.html" %}
-{% block title %}view book{% endblock %}
+{% block title %}Просмотр книги: {{ book.title }}{% endblock %}
 
 {% block content %}
     <h1>{{ book.title }}</h1>
@@ -11,14 +11,34 @@
     <p><strong>Описание:</strong></p>
     <div>{{ book.description|safe }}</div>
     
-    {% if cover %}
-        <p><strong>Обложка:</strong></p>
-        <img class="book-cover" src="{{ url_for('static', filename='img/' + cover.filename) }}" alt="Обложка книги">
-    {% else %}
-        <p>Обложка отсутствует</p>
-    {% endif %}
+    <div>
+        {% if cover %}
+            <p><strong>Обложка:</strong></p>
+            <img class="book-cover" src="{{ url_for('static', filename='img/' + cover.filename) }}" alt="Обложка книги">
+        {% else %}
+            <p>Обложка отсутствует</p>
+        {% endif %}
+    </div>
 
-    <p>Значение переменной cover: {{ cover.filename }}</p>
+    <div>
+        {% if current_user.is_authenticated %}
+            {% if user_review %}
+                <h2>Ваша рецензия:</h2>
+                <p><strong>Оценка:</strong> {{ user_review.rating }}</p>
+                <div>{{ user_review.text|safe }}</div>
+            {% else %}
+                <a href="{{ url_for('add_review', book_id=book.id) }}" class="btn btn-primary">Написать рецензию</a>
+            {% endif %}
+        {% endif %}
+    </div>
+    <h2>Рецензии ({{ reviews_count }}):</h2>
+    {% for review in reviews %}
+        <div class="review">
+            <p><strong>Пользователь:</strong> {{ review.username }}</p>
+            <p><strong>Оценка:</strong> {{ review.rating }}</p>
+            <div>{{ review.text|safe }}</div>
+            <p><small>{{ review.date_added }}</small></p>
+        </div>
+    {% endfor %}
 
-    <p><a href="{{ url_for('edit_book', book_id=book.id) }}">Редактировать</a> | <a href="{{ url_for('delete_book', book_id=book.id) }}" onclick="return confirm('Вы уверены, что хотите удалить эту книгу?');">Удалить</a></p>
 {% endblock %}

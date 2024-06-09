@@ -1,5 +1,5 @@
 from flask_wtf import FlaskForm
-from wtforms import StringField, PasswordField, BooleanField, SubmitField, TextAreaField, FileField  
+from wtforms import StringField, PasswordField, BooleanField, SubmitField, TextAreaField, FileField, SelectField  
 from wtforms.validators import DataRequired, Length, EqualTo
 from wtforms.fields import SelectMultipleField, IntegerField  
 from flask_wtf.file import FileAllowed
@@ -53,3 +53,16 @@ class EditBookForm(FlaskForm):
     def __init__(self, *args, **kwargs):
         super(EditBookForm, self).__init__(*args, **kwargs)
         self.genres.choices = [(genre.id, genre.name) for genre in Genre.query.all()]
+
+
+class ReviewForm(FlaskForm):
+    rating = SelectField('Оценка', choices=[
+        ('5', 'Отлично'),
+        ('4', 'Хорошо'),
+        ('3', 'Удовлетворительно'),
+        ('2', 'Неудовлетворительно'),
+        ('1', 'Плохо'),
+        ('0', 'Ужасно')
+    ], default='5', validators=[DataRequired()])
+    text = TextAreaField('Текст рецензии', validators=[DataRequired(), Length(min=1, max=1000)])
+    submit = SubmitField('Сохранить')

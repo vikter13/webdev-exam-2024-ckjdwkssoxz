@@ -19,4 +19,13 @@
         </div>
         <button type="submit" class="btn btn-primary">Sign In</button>
     </form>
+    {% with messages = get_flashed_messages(with_categories=true) %}
+      {% if messages %}
+        <ul class="flashes">
+          {% for category, message in messages %}
+            <li class="flash-{{ category }}">{{ message }}</li>
+          {% endfor %}
+        </ul>
+      {% endif %}
+    {% endwith %}
 {% endblock %}

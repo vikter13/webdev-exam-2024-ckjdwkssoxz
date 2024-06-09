@@ -1,15 +1,26 @@
-/* styles.css */
-
 body {
     font-family: Arial, sans-serif;
     margin: 0;
     padding: 0;
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
 }
 
 .navbar {
     background-color: #333;
     color: #fff;
     padding: 10px 20px;
+}
+
+p {
+    margin-right: 20px;
+}
+
+.login-button {
+    text-decoration: none;
+    color: #fff;
+    margin-right: 20px;
 }
 
 .navbar-container {
@@ -61,44 +72,101 @@ body {
 
 .content {
     padding: 20px;
+    flex: 1;
+    margin-bottom: 60px;
+}
+
+.username {
+    margin-right: 20px;
+    margin-top: 8px;
 }
 
 .books {
     display: flex;
     flex-wrap: wrap;
+    justify-content: space-between;
+    width: 100%;
 }
 
 .book {
     border: 1px solid #ccc;
     border-radius: 5px;
     padding: 10px;
-    margin: 10px;
-    width: calc(33.33% - 20px); /* Распределение на три столбца */
+    margin-bottom: 20px;
+    width: calc(33.33% - 20px);
+    box-sizing: border-box;
+}
+
+.button {
+    display: inline-block;
+    padding: 8px 12px;
+    margin-top: 5px;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 14px;
+    text-align: center;
+    text-decoration: none;
+    transition: background-color 0.3s;
+}
+
+.add-book-button a {
+    display: inline-block;
+    padding: 8px 12px;
+    margin-top: 5px;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 14px;
+    text-align: center;
+    text-decoration: none;
+    transition: background-color 0.3s;
+}
+
+.add-book-button a {
+    background-color: #17601a;
+    color: white;
+}
+
+.button.view {
+    background-color: #14445b;
+    color: white;
+}
+
+.button.edit {
+    background-color: #53430b;
+    color: white;
+}
+
+.button.delete {
+    background-color: #4c1a17;
+    color: white;
+}
+
+.button:hover {
+    background-color: #ddd;
+    color: black;
+}
+
+.button:active {
+    background-color: #555;
+    color: white;
 }
 
 .book h2 {
     margin-top: 0;
 }
 
-.add-book-button {
-    margin-bottom: 20px;
-}
-
-.avg-rating,
-.reviews {
+.book p {
     margin: 5px 0;
 }
 
-.view,
-.edit,
-.delete {
-    display: block;
-    margin-top: 5px;
+.book a {
     text-decoration: none;
     color: blue;
+    margin-top: 5px;
+    display: inline-block;
 }
-
-/* styles for modal window (don't touch) */
 
 .modal {
     display: none;
@@ -140,11 +208,88 @@ body {
 }
 
 .book-cover {
-    max-width: 100%;
+    max-width: 200px;
+    max-height: 300px;
+    width: auto;
     height: auto;
+    margin-bottom: 20px;
+}
+
+.flash-error {
+    color: red;
+}
+
+.flash-success {
+    color: green;
+}
+
+.flashes {
+    list-style-type: none;
+    padding: 0;
+}
+
+.flashes li {
+    margin-bottom: 10px;
 }
 
 @keyframes fadeIn {
     from { opacity: 0; }
     to { opacity: 1; }
+}
+
+.container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 20px;
+}
+
+p {
+    margin: 0 0 10px;
+}
+
+h1, h2, h3, h4, h5, h6 {
+    margin-top: 0;
+}
+
+.book-cover {
+    max-width: 100%;
+    height: auto;
+    margin-bottom: 20px;
+}
+
+.review {
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    padding: 10px;
+    margin-bottom: 20px;
+}
+
+.review p {
+    margin: 5px 0;
+}
+
+.btn-primary {
+    background-color: #007bff;
+    color: #fff;
+    border: none;
+    border-radius: 4px;
+    padding: 8px 12px;
+    font-size: 14px;
+    cursor: pointer;
+    text-decoration: none;
+    transition: background-color 0.3s;
+}
+
+.btn-primary:hover {
+    background-color: #0056b3;
+}
+
+.footer {
+    background-color: #333;
+    color: #fff;
+    text-align: center;
+    padding: 10px 0;
+    width: 100%;
+    position: fixed;
+    bottom: 0;
 }

@@ -1,0 +1,20 @@
+{% extends "base.html" %}
+{% block title %}Написать рецензию{% endblock %}
+
+{% block content %}
+    <h1>Написать рецензию для книги: {{ book.title }}</h1>
+    <form method="POST" action="">
+        {{ form.hidden_tag() }}
+        <div class="form-group">
+            {{ form.rating.label }}<br>
+            {{ form.rating(class="form-control") }}
+        </div>
+        <div class="form-group">
+            {{ form.text.label }}<br>
+            {{ form.text(class="form-control") }}
+        </div>
+        <div class="form-group">
+            {{ form.submit(class="btn btn-primary") }}
+        </div>
+    </form>
+{% endblock %}

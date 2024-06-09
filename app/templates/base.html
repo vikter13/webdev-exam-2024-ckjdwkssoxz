@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{% block title %}Your App{% endblock %}</title>
+    <title>{% block title %}Book's exam{% endblock %}</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
 </head>
 <body>
@@ -11,24 +11,17 @@
 <nav class="navbar">
     <div class="navbar-container">
         <div class="navbar-left">
-            <a class="navbar-brand" href="#">Your App</a>
+            <a class="navbar-brand" href="{{ url_for('index') }}">Book's exam</a>
             <ul class="navbar-nav">
-                <li><a href="{{ url_for('index') }}">Home</a></li>
-                <li><a href="#">About</a></li>
-                <li><a href="#">Contact</a></li>
+                <li><a href="{{ url_for('about') }}">About</a></li>
             </ul>
         </div>
         <div class="navbar-right">
             {% if current_user.is_authenticated %}
-                <p>Hello, {{ current_user.username }}</p>
-                {% if current_user.role.name == 'Администратор' %}
-                    <a href="{{ url_for('add_book') }}">Add Book</a>
-                {% endif %}
-                <form action="{{ url_for('logout') }}" method="post">
-                    <button type="submit">Logout</button>
-                </form>
+                <p class="username">Hello, {{ current_user.username }}</p>
+                <a class="login-button" href="{{ url_for('logout') }}">Logout</a>
             {% else %}
-                <a href="{{ url_for('login') }}">Login</a>
+                <a class="login-button" href="{{ url_for('login') }}">Login</a>
             {% endif %}
         </div>
     </div>

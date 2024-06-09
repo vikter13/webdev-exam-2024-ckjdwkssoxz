@@ -1,5 +1,5 @@
 {% extends "base.html" %}
-{% block title %}Books List - Your App{% endblock %}
+{% block title %}Book's exam list{% endblock %}
 
 {% block content %}
     <h1>Books List</h1>
@@ -15,23 +15,39 @@
                 <p class="author">Author: {{ book.author }}</p>
                 <p class="year">Year: {{ book.year }}</p>
                 <p class="genres">Genres: {% for genre in book.genres %}{{ genre.name }}{% if not loop.last %}, {% endif %}{% endfor %}</p>
-                <p class="avg-rating">Average Rating: {{ book.avg_rating }}</p>
-                <p class="reviews">Reviews: {{ book.reviews_count }}</p>
+                {% if book.id in book_avg_ratings %}
+                    <p class="avg-rating">Average Rating: {{ book_avg_ratings[book.id] }}</p>
+                {% else %}
+                    <p class="avg-rating">Average Rating: No rating</p>
+                {% endif %}
+                <p class="reviews">Reviews: {{ reviews_count[book.id] }}</p>  
                 {% if current_user.is_authenticated %}
                     {% if current_user.role.name == 'Администратор' %}
-                        <a class="view" href="{{ url_for('view_book', book_id=book.id) }}">View</a>
-                        <a class="edit" href="#">Edit</a>
-                        <a class="delete" href="#" data-book-id="{{ book.id }}" data-book-title="{{ book.title }}">Delete</a>
+                        <div class="button-wrapper">
+                            <a class="button view" href="{{ url_for('view_book', book_id=book.id) }}">View</a>
+                        </div>
+                        <div class="button-wrapper">
+                            <a class="button edit" href="{{ url_for('edit_book', book_id=book.id) }}">Edit</a>
+                        </div>
+                        <div class="button-wrapper">
+                            <a class="button delete" href="#" data-book-id="{{ book.id }}" data-book-title="{{ book.title }}">Delete</a>
+                        </div>                    
                     {% elif current_user.role.name == 'Модератор' %}
-                        <a class="view" href="{{ url_for('view_book', book_id=book.id) }}">View</a>
-                        <a class="edit" href="#">Edit</a>
+                        <div class="button-wrapper">
+                            <a class="button view" href="{{ url_for('view_book', book_id=book.id) }}">View</a>
+                        </div>
+                        <div class="button-wrapper">
+                            <a class="button edit" href="{{ url_for('edit_book', book_id=book.id) }}">Edit</a>
+                        </div>
                     {% else %}
-                        <a class="view" href="{{ url_for('view_book', book_id=book.id) }}">View</a>
+                        <div class="button-wrapper">
+                            <a class="button view" href="{{ url_for('view_book', book_id=book.id) }}">View</a>
+                        </div>
                     {% endif %}
                 {% endif %}
             </div>
         {% endfor %}
-    </div>
+    </div>    
 
     <div id="deleteModal" class="modal">
         <div class="modal-content">

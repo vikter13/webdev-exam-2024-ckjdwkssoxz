@@ -13,6 +13,9 @@ class User(db.Model, UserMixin):
     middle_name = db.Column(db.String(150))
     role_id = db.Column(db.Integer, db.ForeignKey('role.id'), nullable=False)
 
+    def has_reviewed(self, book):
+        return Review.query.filter_by(user_id=self.id, book_id=book.id).first() is not None
+
 class Role(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(150), unique=True, nullable=False)
