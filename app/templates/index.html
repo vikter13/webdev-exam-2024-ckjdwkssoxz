@@ -44,10 +44,38 @@
                             <a class="button view" href="{{ url_for('view_book', book_id=book.id) }}">View</a>
                         </div>
                     {% endif %}
+                {% else %}
+                    <div class="button-wrapper">
+                        <a class="button view" href="{{ url_for('view_book', book_id=book.id) }}">View</a>
+                    </div>
                 {% endif %}
             </div>
         {% endfor %}
     </div>    
+
+    <div class="pagination">
+        {% if books.has_prev %}
+            <li class="page-item"><a class="page-link" href="{{ url_for('index', page=books.prev_num) }}">Previous</a></li>
+        {% endif %}
+        
+        {% for num in books.iter_pages() %}
+            {% if num %}
+                {% if num == books.page %}
+                    <li class="page-item active"><a class="page-link" href="#">{{ num }}</a></li>
+                {% else %}
+                    <li class="page-item"><a class="page-link" href="{{ url_for('index', page=num) }}">{{ num }}</a></li>
+                {% endif %}
+            {% else %}
+                <li class="page-item disabled"><span class="page-link">...</span></li>
+            {% endif %}
+        {% endfor %}
+        
+        {% if books.has_next %}
+            <li class="page-item"><a class="page-link" href="{{ url_for('index', page=books.next_num) }}">Next</a></li>
+        {% endif %}
+    </div>
+    
+    
 
     <div id="deleteModal" class="modal">
         <div class="modal-content">

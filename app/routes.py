@@ -19,10 +19,13 @@ import markdown
 def index():
     page = request.args.get('page', 1, type=int)
     books = Book.query.order_by(Book.year.desc()).paginate(page=page, per_page=10)
+    
     avg_ratings = db.session.query(func.avg(Review.rating)).join(Book).group_by(Book.id).all()
     book_avg_ratings = {book.id: round(rating[0], 2) if rating[0] is not None else "No rating" for book, rating in zip(books.items, avg_ratings)}
     reviews_count = {book.id: len(book.reviews) for book in books.items}
+    
     return render_template('index.html', books=books, book_avg_ratings=book_avg_ratings, reviews_count=reviews_count)
+
 
 
 @app.route('/login', methods=['GET', 'POST'])

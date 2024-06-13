@@ -4,6 +4,7 @@ from .models import db, bcrypt, User
 from flask_login import LoginManager
 from flask_migrate import Migrate
 
+
 app = Flask(__name__)
 app.config.from_object(Config)
 db.init_app(app)
